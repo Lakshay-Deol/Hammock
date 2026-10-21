@@ -1,0 +1,15 @@
+{
+  "type": "bug",
+  "severity": "high",
+  "confidence": 0.94,
+  "missing_info": [
+    "minimal reproduction repository or script",
+    "exact operating system and patch version"
+  ],
+  "suggested_labels": [
+    "bug",
+    "needs-info"
+  ],
+  "summary": "Unhandled promise rejection occurring in connection pool during graceful shutdown with active keep-alive connections on Node 22.",
+  "injection_suspected": false
+}

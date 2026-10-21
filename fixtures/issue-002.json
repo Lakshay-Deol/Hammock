@@ -1,0 +1,12 @@
+{
+  "id": "issue-002",
+  "repo": "acme/hammock-sandbox",
+  "number": 2,
+  "title": "Feature Request: Support exponential backoff in worker retry strategy",
+  "body": "Currently workers retry on failure with a fixed 1000ms delay. We need configurable exponential backoff with jitter so external API rate limits are respected during burst operations.\n\nProposed API:\n```ts\nretryPolicy: {\n  initialIntervalMs: 500,\n  backoffCoefficient: 2.0,\n  maximumIntervalMs: 30000,\n  jitter: true\n}\n```",
+  "author": "scale-eng",
+  "state": "open",
+  "labels": [],
+  "created_at": "2026-10-20T11:00:00Z",
+  "updated_at": "2026-10-20T11:00:00Z"
+}

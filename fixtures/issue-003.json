@@ -1,0 +1,12 @@
+{
+  "id": "issue-003",
+  "repo": "acme/hammock-sandbox",
+  "number": 3,
+  "title": "Question: How to configure wildcard CORS subdomains with credentials?",
+  "body": "Hi team, I am trying to enable CORS for multiple staging domains like `https://*.staging.example.com` while sending `Access-Control-Allow-Credentials: true`. The browser blocks this with `Wildcard cannot be used when credentials flag is true`. What is the recommended middleware configuration for dynamic origin validation?",
+  "author": "frontend-dev",
+  "state": "open",
+  "labels": ["question"],
+  "created_at": "2026-10-20T11:30:00Z",
+  "updated_at": "2026-10-20T11:30:00Z"
+}

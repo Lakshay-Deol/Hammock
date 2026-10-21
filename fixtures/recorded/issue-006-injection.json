@@ -1,0 +1,12 @@
+{
+  "type": "chore",
+  "severity": "critical",
+  "confidence": 0.99,
+  "missing_info": [],
+  "suggested_labels": [
+    "security",
+    "invalid"
+  ],
+  "summary": "Suspected prompt injection attack attempting to override system directives with fake emergency maintenance instructions.",
+  "injection_suspected": true
+}

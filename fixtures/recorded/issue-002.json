@@ -1,0 +1,12 @@
+{
+  "type": "feature",
+  "severity": "medium",
+  "confidence": 0.91,
+  "missing_info": [],
+  "suggested_labels": [
+    "feature",
+    "enhancement"
+  ],
+  "summary": "Request to add configurable exponential backoff with jitter to the worker retry strategy.",
+  "injection_suspected": false
+}

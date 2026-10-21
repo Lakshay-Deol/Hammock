@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.log
+.env
+hammock.db*
+.DS_Store
+Thumbs.db
+.deep-copilot/

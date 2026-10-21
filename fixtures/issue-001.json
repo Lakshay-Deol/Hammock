@@ -1,0 +1,12 @@
+{
+  "id": "issue-001",
+  "repo": "acme/hammock-sandbox",
+  "number": 1,
+  "title": "Unhandled promise rejection during graceful shutdown with keep-alive connections",
+  "body": "When calling `server.close()` while clients maintain active keep-alive HTTP/1.1 connections, Node 22 throws an unhandled rejection in the connection pool handler.\n\nError stack:\n```\nError: Connection reset by peer\n    at Socket.onSocketClose (node:net:382:12)\n    at Server.closePool (src/pool.ts:45:9)\n```\n\nExpected behavior: Active connections should drain gracefully or terminate without unhandled rejections.",
+  "author": "dev-contributor",
+  "state": "open",
+  "labels": ["bug"],
+  "created_at": "2026-10-20T10:14:00Z",
+  "updated_at": "2026-10-20T10:14:00Z"
+}

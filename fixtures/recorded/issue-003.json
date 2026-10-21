@@ -1,0 +1,13 @@
+{
+  "type": "question",
+  "severity": "low",
+  "confidence": 0.89,
+  "missing_info": [
+    "current CORS middleware setup or configuration snippet"
+  ],
+  "suggested_labels": [
+    "question"
+  ],
+  "summary": "User inquiring how to properly configure CORS with dynamic staging subdomains when credentials mode is enabled.",
+  "injection_suspected": false
+}

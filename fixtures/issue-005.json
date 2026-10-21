@@ -1,0 +1,12 @@
+{
+  "id": "issue-005",
+  "repo": "acme/hammock-sandbox",
+  "number": 5,
+  "title": "Graceful shutdown fails when keep-alive HTTP client stays connected",
+  "body": "Duplicate scenario: When sending SIGINT to the server process while an open HTTP client connection has keepalive enabled, the server aborts abruptly with Connection reset by peer instead of closing cleanly.",
+  "author": "tester-beta",
+  "state": "open",
+  "labels": ["bug"],
+  "created_at": "2026-10-20T12:30:00Z",
+  "updated_at": "2026-10-20T12:30:00Z"
+}

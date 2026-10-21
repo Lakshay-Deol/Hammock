@@ -1,0 +1,40 @@
+{
+  "name": "hammock",
+  "version": "0.1.0",
+  "description": "Local, approval-gated GitHub issue triage with Gemma 4",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "hammock": "./dist/cli.js"
+  },
+  "scripts": {
+    "hammock": "tsx src/cli.ts",
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "github",
+    "issue-triage",
+    "gemma",
+    "ai-agent",
+    "temporal"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.15.1",
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "commander": "^15.0.0",
+    "hono": "^4.13.13",
+    "octokit": "^5.0.5",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "type": "bug",
+  "severity": "high",
+  "confidence": 0.93,
+  "missing_info": [
+    "reproduction repository or HTTP benchmark tool used"
+  ],
+  "suggested_labels": [
+    "bug",
+    "duplicate"
+  ],
+  "summary": "Process aborts abruptly with Connection reset by peer during SIGINT shutdown when clients have keepalive open (suspected duplicate of issue #1).",
+  "injection_suspected": false
+}

@@ -1,0 +1,12 @@
+{
+  "id": "issue-004",
+  "repo": "acme/hammock-sandbox",
+  "number": 4,
+  "title": "Documentation: Broken hyperlink to migration guide in README.md",
+  "body": "In `README.md` under section 'Migrating from v1 to v2', the hyperlink points to `https://example.com/docs/v2-migration` which returns a 404 Not Found error. It should be updated to point to `docs/migration-guide.md`.",
+  "author": "doc-hunter",
+  "state": "open",
+  "labels": ["documentation"],
+  "created_at": "2026-10-20T12:00:00Z",
+  "updated_at": "2026-10-20T12:00:00Z"
+}

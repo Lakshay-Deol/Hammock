@@ -1,0 +1,11 @@
+{
+  "type": "documentation",
+  "severity": "low",
+  "confidence": 0.96,
+  "missing_info": [],
+  "suggested_labels": [
+    "documentation"
+  ],
+  "summary": "Broken link in README.md migration section pointing to a 404 URL instead of the local migration guide.",
+  "injection_suspected": false
+}

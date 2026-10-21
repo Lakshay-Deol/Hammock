@@ -1,0 +1,12 @@
+tone: warm-professional        # or terse, or friendly
+labels:
+  auto: [bug, question, feature, needs-info, duplicate]
+  never: [security, good-first-issue]
+approve:
+  - comment
+  - close
+  - lock
+  - assign
+limits:
+  max_labels_per_issue: 4
+  max_comments_per_run: 0      # comments are always approval-gated
