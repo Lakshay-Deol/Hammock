@@ -225,6 +225,39 @@ export class HammockRepository {
     );
   }
 
+  getProposal(id: string): Proposal | null {
+    const stmt = this.db.prepare('SELECT * FROM proposals WHERE id = ?');
+    const row = stmt.get(id) as Record<string, unknown> | undefined;
+    if (!row) return null;
+    return {
+      id: String(row['id']),
+      issue_id: String(row['issue_id']),
+      action: row['action'] as Proposal['action'],
+      payload_json: String(row['payload_json']),
+      risk: row['risk'] as Proposal['risk'],
+      status: row['status'] as Proposal['status'],
+      created_at: String(row['created_at']),
+      decided_at: row['decided_at'] ? String(row['decided_at']) : undefined,
+      decided_by: row['decided_by'] ? String(row['decided_by']) : undefined,
+    };
+  }
+
+  getProposalsByStatus(status: Proposal['status']): Proposal[] {
+    const stmt = this.db.prepare('SELECT * FROM proposals WHERE status = ? ORDER BY created_at ASC');
+    const rows = stmt.all(status) as Array<Record<string, unknown>>;
+    return rows.map((row) => ({
+      id: String(row['id']),
+      issue_id: String(row['issue_id']),
+      action: row['action'] as Proposal['action'],
+      payload_json: String(row['payload_json']),
+      risk: row['risk'] as Proposal['risk'],
+      status: row['status'] as Proposal['status'],
+      created_at: String(row['created_at']),
+      decided_at: row['decided_at'] ? String(row['decided_at']) : undefined,
+      decided_by: row['decided_by'] ? String(row['decided_by']) : undefined,
+    }));
+  }
+
   saveReceipt(receipt: Receipt): void {
     const stmt = this.db.prepare(`
       INSERT INTO receipts (id, run_id, issue_id, action, payload_json, evidence_json, outcome, user_edit_diff, created_at)

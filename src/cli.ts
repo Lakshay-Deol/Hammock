@@ -11,6 +11,14 @@ import { findAndAdjudicateDuplicates } from './model/dedupe.js';
 import { generateDraftReply } from './model/draft.js';
 import { runDedupeBenchmark } from './model/eval-dedupe.js';
 import { loadPolicy } from './policy/index.js';
+import { checkTemporalHealth, scheduleNightlyTriage, triggerTriageRun } from './temporal/client.js';
+import { runWorker } from './temporal/worker.js';
+import {
+  fetchIssuesActivity,
+  triageIssueActivity,
+  applyAllowlistActivity,
+  saveRunDigestActivity,
+} from './temporal/activities.js';
 
 const program = new Command();
 
@@ -116,6 +124,14 @@ program
         });
       }
     }
+
+    // 6. Temporal Orchestrator Daemon check
+    const temporalHealth = await checkTemporalHealth();
+    checks.push({
+      name: 'Temporal Orchestrator',
+      status: temporalHealth.ok ? 'PASS' : 'WARN',
+      message: temporalHealth.message,
+    });
 
     // Display table
     console.table(
@@ -425,6 +441,118 @@ program
       console.warn('⚠️ Benchmark results fell below target threshold.\n');
       process.exit(1);
     }
+  });
+
+/**
+ * hammock triage-run [repo]
+ * Run complete triage pipeline across fetched issues using Temporal activities
+ */
+program
+  .command('triage-run [repo]')
+  .description('Execute full triage run over issues (fetch -> triage fan-out -> allowlist auto-label -> proposals -> digest)')
+  .option('-s, --since <timestamp>', 'Only fetch issues updated after timestamp')
+  .option('-r, --replay', 'Force replay mode', false)
+  .action(async (targetRepo?: string, options?: { since?: string; replay?: boolean }) => {
+    const repo = targetRepo ?? config.HAMMOCK_SANDBOX_REPO ?? 'acme/hammock-sandbox';
+    const runId = `run_${Date.now()}`;
+
+    console.log(`🚀 Starting Hammock triage run for "${repo}" (Run ID: ${runId})...\n`);
+
+    // 1. Fetch updated issues
+    const fetchRes = await fetchIssuesActivity({
+      repo,
+      since: options?.since,
+    });
+
+    console.log(`📥 Fetched ${fetchRes.issues.length} issues (NotModified: ${fetchRes.notModified})`);
+
+    if (fetchRes.issues.length === 0) {
+      console.log('No new or updated issues found to triage.');
+      return;
+    }
+
+    let labelsAppliedCount = 0;
+    let proposalsQueuedCount = 0;
+    let duplicatesFoundCount = 0;
+
+    for (const issue of fetchRes.issues) {
+      console.log(`\n--- Triaging #${issue.number}: "${issue.title}" ---`);
+
+      // 2. Classify, embed, and dedupe
+      const triageRes = await triageIssueActivity({ issue, runId });
+      console.log(`Type: ${triageRes.verdict.type} | Severity: ${triageRes.verdict.severity} | Latency: ${triageRes.latencyMs}ms`);
+
+      if (triageRes.candidates.some((c) => c.is_duplicate)) {
+        duplicatesFoundCount++;
+        console.log(`⚠️ Possible duplicate detected among prior issues.`);
+      }
+
+      // 3. Apply allowlisted labels and queue proposals
+      const actionRes = await applyAllowlistActivity({
+        issue,
+        verdict: triageRes.verdict,
+        candidates: triageRes.candidates,
+        draft: triageRes.draft,
+        runId,
+      });
+
+      if (actionRes.appliedLabels.length > 0) {
+        console.log(`🏷️ Auto-applied allowlisted labels: [${actionRes.appliedLabels.join(', ')}]`);
+        labelsAppliedCount += actionRes.appliedLabels.length;
+      }
+
+      if (actionRes.queuedProposals.length > 0) {
+        console.log(`📋 Approval-gated proposals queued: ${actionRes.queuedProposals.length} (comments require human approval)`);
+        proposalsQueuedCount += actionRes.queuedProposals.length;
+      }
+    }
+
+    // 4. Digest
+    const digest = await saveRunDigestActivity({
+      runId,
+      repo,
+      totalIssues: fetchRes.issues.length,
+      labelsApplied: labelsAppliedCount,
+      proposalsQueued: proposalsQueuedCount,
+      duplicatesFound: duplicatesFoundCount,
+    });
+
+    console.log('\n📊 Triage Run Completed Successfully:');
+    console.table([
+      { Metric: 'Run ID', Value: digest.runId },
+      { Metric: 'Repository', Value: digest.repo },
+      { Metric: 'Total Issues Triaged', Value: digest.totalIssues },
+      { Metric: 'Allowlisted Labels Applied', Value: digest.labelsApplied },
+      { Metric: 'Pending Proposals Queued', Value: digest.proposalsQueued },
+      { Metric: 'Duplicates Spotted', Value: digest.duplicatesFound },
+      { Metric: 'Completed At', Value: digest.completedAt },
+    ]);
+  });
+
+/**
+ * hammock schedule [repo]
+ * Register durable nightly triage cron schedule on Temporal
+ */
+program
+  .command('schedule [repo]')
+  .description('Configure durable nightly triage schedule in Temporal')
+  .option('-c, --cron <expression>', 'Cron expression for schedule', '0 2 * * *')
+  .action(async (targetRepo?: string, options?: { cron: string }) => {
+    const repo = targetRepo ?? config.HAMMOCK_SANDBOX_REPO ?? 'acme/hammock-sandbox';
+    console.log(`⏰ Configuring Temporal nightly schedule for "${repo}" (${options?.cron ?? '0 2 * * *'})...`);
+    const res = await scheduleNightlyTriage(repo, options?.cron);
+    console.log(`✅ ${res.message} (Schedule ID: ${res.scheduleId})`);
+  });
+
+/**
+ * hammock worker
+ * Start Temporal worker daemon
+ */
+program
+  .command('worker')
+  .description('Start the Hammock Temporal worker')
+  .action(async () => {
+    await runWorker();
   });
 
 program.parse(process.argv);
