@@ -81,3 +81,23 @@ export const ReceiptSchema = z.object({
 });
 
 export type Receipt = z.infer<typeof ReceiptSchema>;
+
+export const DuplicateCandidateSchema = z.object({
+  target_issue_id: z.string(),
+  candidate_issue_id: z.string(),
+  similarity: z.number().min(-1).max(1),
+  is_duplicate: z.boolean(),
+  confidence: z.number().min(0).max(1),
+  evidence: z.string(),
+});
+
+export type DuplicateCandidate = z.infer<typeof DuplicateCandidateSchema>;
+
+export const DraftReplySchema = z.object({
+  issue_id: z.string(),
+  tone: z.string(),
+  reply: z.string(),
+  questions: z.array(z.string()),
+});
+
+export type DraftReply = z.infer<typeof DraftReplySchema>;

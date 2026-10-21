@@ -6,6 +6,10 @@ import { config } from './config.js';
 import { IssueSchema } from './types/schemas.js';
 import { HammockRepository } from './db/index.js';
 import { getModelClient } from './model/factory.js';
+import { getEmbeddingClient } from './model/embedding.js';
+import { findAndAdjudicateDuplicates } from './model/dedupe.js';
+import { generateDraftReply } from './model/draft.js';
+import { runDedupeBenchmark } from './model/eval-dedupe.js';
 import { loadPolicy } from './policy/index.js';
 
 const program = new Command();
@@ -276,6 +280,149 @@ program
       console.log(`\n🎉 All ${results.length}/${results.length} fixtures passed acceptance checks!`);
     } else {
       console.error('\n❌ Some fixtures failed acceptance check.');
+      process.exit(1);
+    }
+  });
+
+/**
+ * hammock dedupe <file>
+ * Search for duplicates of the given issue among issues in SQLite
+ */
+program
+  .command('dedupe <file>')
+  .description('Find potential duplicates for an issue using hybrid cosine recall and Gemma adjudication')
+  .option('-r, --replay', 'Force replay adapter', false)
+  .option('-k, --top-k <number>', 'Number of top candidates to adjudicate', '3')
+  .action(async (filePath: string, options: { replay: boolean; topK: string }) => {
+    const resolvedPath = path.resolve(process.cwd(), filePath);
+    if (!fs.existsSync(resolvedPath)) {
+      console.error(`Error: Issue file not found at ${resolvedPath}`);
+      process.exit(1);
+    }
+
+    const issue = IssueSchema.parse(JSON.parse(fs.readFileSync(resolvedPath, 'utf8')));
+    const rawModelClient = getModelClient(options.replay);
+    const rawEmbedClient = getEmbeddingClient(options.replay);
+
+    let modelClient = rawModelClient;
+    let embedClient = rawEmbedClient;
+
+    if (!options.replay && !config.HAMMOCK_REPLAY) {
+      const [mHealth, eHealth] = await Promise.all([rawModelClient.checkHealth(), rawEmbedClient.checkHealth()]);
+      if (!mHealth.ok || !eHealth.ok) {
+        modelClient = getModelClient(true);
+        embedClient = getEmbeddingClient(true);
+      }
+    }
+
+    const repo = new HammockRepository(config.HAMMOCK_DB_PATH);
+
+    try {
+      console.log(`🔍 Searching duplicates for issue #${issue.number}: "${issue.title}"...`);
+      const candidates = await findAndAdjudicateDuplicates(
+        issue,
+        repo,
+        modelClient,
+        embedClient,
+        parseInt(options.topK, 10)
+      );
+
+      if (candidates.length === 0) {
+        console.log('No prior issues stored in database to compare against.');
+        return;
+      }
+
+      console.table(
+        candidates.map((c) => ({
+          CandidateID: c.candidate_issue_id,
+          Similarity: `${(c.similarity * 100).toFixed(1)}%`,
+          Duplicate: c.is_duplicate ? '⚠️ YES' : 'NO',
+          Confidence: `${(c.confidence * 100).toFixed(0)}%`,
+          Evidence: c.evidence,
+        }))
+      );
+    } finally {
+      repo.close();
+    }
+  });
+
+/**
+ * hammock draft <file>
+ * Generate a tone-conditioned response requesting missing information
+ */
+program
+  .command('draft <file>')
+  .description('Draft a polite, tone-conditioned reply requesting missing information')
+  .option('-r, --replay', 'Force replay adapter', false)
+  .option('-t, --tone <tone>', 'Override policy tone (warm-professional | friendly | terse)')
+  .action(async (filePath: string, options: { replay: boolean; tone?: string }) => {
+    const resolvedPath = path.resolve(process.cwd(), filePath);
+    if (!fs.existsSync(resolvedPath)) {
+      console.error(`Error: Issue file not found at ${resolvedPath}`);
+      process.exit(1);
+    }
+
+    const issue = IssueSchema.parse(JSON.parse(fs.readFileSync(resolvedPath, 'utf8')));
+    const policy = loadPolicy();
+    const effectiveTone = options.tone ?? policy.tone;
+    const rawModelClient = getModelClient(options.replay);
+
+    let modelClient = rawModelClient;
+    if (!options.replay && !config.HAMMOCK_REPLAY) {
+      const mHealth = await rawModelClient.checkHealth();
+      if (!mHealth.ok) {
+        modelClient = getModelClient(true);
+      }
+    }
+
+    console.log(`✍️ Drafting reply for issue #${issue.number} using tone "${effectiveTone}"...`);
+    const verdictRes = await modelClient.classifyIssue(issue);
+    const draft = await generateDraftReply(issue, verdictRes.verdict, effectiveTone, modelClient);
+
+    console.log('\n--- Draft Reply ---');
+    console.log(draft.reply);
+    console.log('\n--- Questions Asked ---');
+    draft.questions.forEach((q, i) => console.log(`${i + 1}. ${q}`));
+  });
+
+/**
+ * hammock eval-dedupe
+ * PLAN.md acceptance:
+ * Dedupe precision/recall computed on harvested data (target precision > 0.8 at recall ~0.5)
+ */
+program
+  .command('eval-dedupe')
+  .description('Run deduplication benchmark on harvested dataset and compute precision/recall')
+  .option('-r, --replay', 'Force replay adapter', false)
+  .option('-d, --dataset <path>', 'Custom dataset path')
+  .action(async (options: { replay: boolean; dataset?: string }) => {
+    console.log('📊 Evaluating deduplication precision and recall against ground truth dataset...\n');
+    const { metrics, details } = await runDedupeBenchmark(options.dataset, options.replay);
+
+    console.table(details);
+
+    console.log('\n📈 Deduplication Benchmark Summary:');
+    console.table([
+      { Metric: 'Total Pairs Evaluated', Value: metrics.totalPairs },
+      { Metric: 'True Positives (TP)', Value: metrics.truePositives },
+      { Metric: 'False Positives (FP)', Value: metrics.falsePositives },
+      { Metric: 'True Negatives (TN)', Value: metrics.trueNegatives },
+      { Metric: 'False Negatives (FN)', Value: metrics.falseNegatives },
+      { Metric: 'Precision (Target > 0.80)', Value: `${(metrics.precision * 100).toFixed(1)}%` },
+      { Metric: 'Recall (Target ~ 0.50)', Value: `${(metrics.recall * 100).toFixed(1)}%` },
+      { Metric: 'F1 Score', Value: metrics.f1Score.toFixed(3) },
+      { Metric: 'Avg Duplicate Cosine Similarity', Value: metrics.meanSimilarityDuplicates.toFixed(3) },
+      { Metric: 'Avg Non-Duplicate Cosine Similarity', Value: metrics.meanSimilarityNonDuplicates.toFixed(3) },
+      { Metric: 'Avg Latency Per Pair', Value: `${metrics.avgLatencyMs}ms` },
+    ]);
+
+    const precisionPass = metrics.precision >= 0.8;
+    const recallPass = metrics.recall >= 0.5;
+
+    if (precisionPass && recallPass) {
+      console.log('🎯 Dedupe precision/recall acceptance targets MET! (Precision >= 0.80, Recall >= 0.50)\n');
+    } else {
+      console.warn('⚠️ Benchmark results fell below target threshold.\n');
       process.exit(1);
     }
   });

@@ -23,6 +23,7 @@
   "license": "Apache-2.0",
   "packageManager": "pnpm@10.15.1",
   "dependencies": {
+    "@mastra/core": "^1.78.0",
     "better-sqlite3": "^13.0.3",
     "commander": "^15.0.0",
     "hono": "^4.13.13",

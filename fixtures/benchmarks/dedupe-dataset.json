@@ -1,0 +1,226 @@
+[
+  {
+    "id": "pair-01",
+    "ground_truth_duplicate": true,
+    "target": {
+      "id": "issue-101",
+      "repo": "facebook/react-style",
+      "number": 101,
+      "title": "Unhandled promise rejection during graceful shutdown with keep-alive connections",
+      "body": "When calling server.close() while clients maintain active keep-alive HTTP/1.1 connections, Node throws an unhandled rejection in the connection pool handler.\n\nError: Connection reset by peer at Socket.onSocketClose",
+      "author": "user1",
+      "state": "closed",
+      "labels": ["bug", "duplicate"],
+      "created_at": "2026-10-15T08:00:00Z",
+      "updated_at": "2026-10-15T08:00:00Z"
+    },
+    "candidate": {
+      "id": "issue-105",
+      "repo": "facebook/react-style",
+      "number": 105,
+      "title": "Graceful shutdown fails when keep-alive HTTP client stays connected",
+      "body": "When sending SIGINT to the server process while an open HTTP client connection has keepalive enabled, the server aborts abruptly with Connection reset by peer instead of closing cleanly.",
+      "author": "user2",
+      "state": "closed",
+      "labels": ["bug"],
+      "created_at": "2026-10-15T10:00:00Z",
+      "updated_at": "2026-10-15T10:00:00Z"
+    }
+  },
+  {
+    "id": "pair-02",
+    "ground_truth_duplicate": true,
+    "target": {
+      "id": "issue-201",
+      "repo": "expressjs/express-style",
+      "number": 201,
+      "title": "Memory leak in WebSocket heartbeat interval timer",
+      "body": "The heartbeat ping interval continues running even after socket disconnects, preventing garbage collection of the client session object and leaking 15MB/hour under load.",
+      "author": "user3",
+      "state": "closed",
+      "labels": ["bug", "duplicate"],
+      "created_at": "2026-10-16T09:00:00Z",
+      "updated_at": "2026-10-16T09:00:00Z"
+    },
+    "candidate": {
+      "id": "issue-208",
+      "repo": "expressjs/express-style",
+      "number": 208,
+      "title": "Unclosed interval timer in ws ping keeps connection references in heap",
+      "body": "Heap dump shows PingTimer retaining closed connection instances. clearInterval is not called on unexpected peer dropouts.",
+      "author": "user4",
+      "state": "closed",
+      "labels": ["bug"],
+      "created_at": "2026-10-16T12:00:00Z",
+      "updated_at": "2026-10-16T12:00:00Z"
+    }
+  },
+  {
+    "id": "pair-03",
+    "ground_truth_duplicate": true,
+    "target": {
+      "id": "issue-301",
+      "repo": "vitejs/vite-style",
+      "number": 301,
+      "title": "Windows path backslash causes module resolution failure",
+      "body": "On Windows 11, path.resolve generates backslash paths that fail regex matching in the plugin pipeline: Cannot find module C:\\app\\src\\index.ts",
+      "author": "user5",
+      "state": "closed",
+      "labels": ["bug", "duplicate"],
+      "created_at": "2026-10-17T09:00:00Z",
+      "updated_at": "2026-10-17T09:00:00Z"
+    },
+    "candidate": {
+      "id": "issue-312",
+      "repo": "vitejs/vite-style",
+      "number": 312,
+      "title": "Normalize paths to forward slashes for Windows compatibility in resolver",
+      "body": "Plugin loader breaks on Windows due to un-normalized backslashes in absolute file paths, throwing module not found errors.",
+      "author": "user6",
+      "state": "closed",
+      "labels": ["bug"],
+      "created_at": "2026-10-17T14:00:00Z",
+      "updated_at": "2026-10-17T14:00:00Z"
+    }
+  },
+  {
+    "id": "pair-04",
+    "ground_truth_duplicate": false,
+    "target": {
+      "id": "issue-101",
+      "repo": "facebook/react-style",
+      "number": 101,
+      "title": "Unhandled promise rejection during graceful shutdown with keep-alive connections",
+      "body": "When calling server.close() while clients maintain active keep-alive HTTP/1.1 connections, Node throws an unhandled rejection in the connection pool handler.",
+      "author": "user1",
+      "state": "open",
+      "labels": ["bug"],
+      "created_at": "2026-10-15T08:00:00Z",
+      "updated_at": "2026-10-15T08:00:00Z"
+    },
+    "candidate": {
+      "id": "issue-102",
+      "repo": "facebook/react-style",
+      "number": 102,
+      "title": "Feature Request: Support exponential backoff in worker retry strategy",
+      "body": "Currently workers retry on failure with a fixed 1000ms delay. We need configurable exponential backoff with jitter.",
+      "author": "user7",
+      "state": "open",
+      "labels": ["feature"],
+      "created_at": "2026-10-15T09:00:00Z",
+      "updated_at": "2026-10-15T09:00:00Z"
+    }
+  },
+  {
+    "id": "pair-05",
+    "ground_truth_duplicate": false,
+    "target": {
+      "id": "issue-301",
+      "repo": "vitejs/vite-style",
+      "number": 301,
+      "title": "Windows path backslash causes module resolution failure",
+      "body": "On Windows 11, path.resolve generates backslash paths that fail regex matching in the plugin pipeline.",
+      "author": "user5",
+      "state": "open",
+      "labels": ["bug"],
+      "created_at": "2026-10-17T09:00:00Z",
+      "updated_at": "2026-10-17T09:00:00Z"
+    },
+    "candidate": {
+      "id": "issue-305",
+      "repo": "vitejs/vite-style",
+      "number": 305,
+      "title": "Symlink resolution cycles on Linux container mounts",
+      "body": "Circular symlinks on mounted Docker volumes trigger maximum call stack size exceeded in fs.realpathSync.",
+      "author": "user8",
+      "state": "open",
+      "labels": ["bug"],
+      "created_at": "2026-10-17T11:00:00Z",
+      "updated_at": "2026-10-17T11:00:00Z"
+    }
+  },
+  {
+    "id": "pair-06",
+    "ground_truth_duplicate": false,
+    "target": {
+      "id": "issue-401",
+      "repo": "acme/cors-lib",
+      "number": 401,
+      "title": "Question: How to configure wildcard CORS subdomains with credentials?",
+      "body": "Browser blocks Access-Control-Allow-Credentials: true when origin header is wildcard. How to validate dynamic origin?",
+      "author": "user9",
+      "state": "open",
+      "labels": ["question"],
+      "created_at": "2026-10-18T10:00:00Z",
+      "updated_at": "2026-10-18T10:00:00Z"
+    },
+    "candidate": {
+      "id": "issue-402",
+      "repo": "acme/cors-lib",
+      "number": 402,
+      "title": "HTTP 301 redirect loses Authorization bearer header",
+      "body": "When redirecting from http to https, the client drops the Authorization bearer token header per RFC spec.",
+      "author": "user10",
+      "state": "open",
+      "labels": ["bug"],
+      "created_at": "2026-10-18T12:00:00Z",
+      "updated_at": "2026-10-18T12:00:00Z"
+    }
+  },
+  {
+    "id": "pair-07",
+    "ground_truth_duplicate": false,
+    "target": {
+      "id": "issue-501",
+      "repo": "acme/docs",
+      "number": 501,
+      "title": "Documentation: Broken hyperlink to migration guide in README.md",
+      "body": "Hyperlink points to 404 page instead of docs/migration-guide.md.",
+      "author": "user11",
+      "state": "open",
+      "labels": ["documentation"],
+      "created_at": "2026-10-19T10:00:00Z",
+      "updated_at": "2026-10-19T10:00:00Z"
+    },
+    "candidate": {
+      "id": "issue-502",
+      "repo": "acme/docs",
+      "number": 502,
+      "title": "Missing --verbose CLI flag description in man page",
+      "body": "The --verbose flag is documented in help but omitted from generated groff man pages.",
+      "author": "user12",
+      "state": "open",
+      "labels": ["documentation"],
+      "created_at": "2026-10-19T13:00:00Z",
+      "updated_at": "2026-10-19T13:00:00Z"
+    }
+  },
+  {
+    "id": "pair-08",
+    "ground_truth_duplicate": false,
+    "target": {
+      "id": "issue-601",
+      "repo": "acme/db",
+      "number": 601,
+      "title": "SQLite WAL lock contention under concurrent read/write transactions",
+      "body": "High write concurrency produces SQLITE_BUSY: database is locked when checkpointing takes longer than busy_timeout.",
+      "author": "user13",
+      "state": "open",
+      "labels": ["bug"],
+      "created_at": "2026-10-19T14:00:00Z",
+      "updated_at": "2026-10-19T14:00:00Z"
+    },
+    "candidate": {
+      "id": "issue-602",
+      "repo": "acme/db",
+      "number": 602,
+      "title": "PostgreSQL transaction deadlock when updating foreign key cascades",
+      "body": "Concurrent delete cascades on parent table acquire row locks in conflicting order, throwing deadlock detected.",
+      "author": "user14",
+      "state": "open",
+      "labels": ["bug"],
+      "created_at": "2026-10-19T15:00:00Z",
+      "updated_at": "2026-10-19T15:00:00Z"
+    }
+  }
+]
