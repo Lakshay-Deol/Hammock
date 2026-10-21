@@ -19,6 +19,8 @@ import {
   applyAllowlistActivity,
   saveRunDigestActivity,
 } from './temporal/activities.js';
+import { ApprovalService } from './approval/service.js';
+import { startServer } from './server/index.js';
 
 const program = new Command();
 
@@ -553,6 +555,127 @@ program
   .description('Start the Hammock Temporal worker')
   .action(async () => {
     await runWorker();
+  });
+
+/**
+ * hammock dashboard
+ * Launch Hono maintainer approval dashboard
+ */
+program
+  .command('dashboard')
+  .description('Launch the Hammock maintainer approval dashboard')
+  .option('-p, --port <number>', 'Port to listen on', '3000')
+  .action((options: { port: string }) => {
+    const port = parseInt(options.port, 10);
+    startServer(port);
+  });
+
+/**
+ * hammock proposals
+ * List pending triage proposals in approval queue
+ */
+program
+  .command('proposals')
+  .description('List pending triage proposals waiting for human approval')
+  .action(() => {
+    const service = new ApprovalService();
+    const pending = service.getPendingProposals();
+
+    if (pending.length === 0) {
+      console.log('✨ No pending proposals. Your maintainer queue is clean!');
+      return;
+    }
+
+    console.log(`📋 Found ${pending.length} pending proposal(s) waiting for approval:\n`);
+    console.table(
+      pending.map((p) => ({
+        ID: p.proposal.id,
+        Issue: p.issue ? `#${p.issue.number} ${p.issue.title.slice(0, 30)}...` : p.proposal.issue_id,
+        Action: p.proposal.action.toUpperCase(),
+        Risk: p.proposal.risk.toUpperCase(),
+        Created: new Date(p.proposal.created_at).toLocaleTimeString(),
+      }))
+    );
+  });
+
+/**
+ * hammock approve <id>
+ * Approve and execute a gated proposal
+ */
+program
+  .command('approve <id>')
+  .description('Approve a gated proposal and execute through write gate')
+  .option('-e, --edit <text>', 'Edited text content for draft comment')
+  .option('-a, --actor <name>', 'Maintainer actor identity', 'maintainer-cli')
+  .action(async (id: string, options: { edit?: string; actor: string }) => {
+    const service = new ApprovalService();
+    try {
+      console.log(`👍 Approving proposal "${id}" as ${options.actor}...`);
+      const receipt = await service.approveProposal(id, options.actor, options.edit);
+      console.log(`✅ Proposal executed!`);
+      console.log(`Receipt ID: ${receipt.id}`);
+      console.log(`Outcome: ${receipt.outcome}`);
+      if (receipt.user_edit_diff) {
+        console.log(`User Edit Diff:\n${receipt.user_edit_diff}`);
+      }
+    } catch (err) {
+      console.error(`❌ Approval failed: ${String(err)}`);
+      process.exit(1);
+    }
+  });
+
+/**
+ * hammock reject <id>
+ * Reject a gated proposal (leaves zero trace on GitHub)
+ */
+program
+  .command('reject <id>')
+  .description('Reject a gated proposal (leaves zero trace on GitHub)')
+  .option('-r, --reason <text>', 'Reason for rejection', 'Rejected by maintainer CLI')
+  .option('-a, --actor <name>', 'Maintainer actor identity', 'maintainer-cli')
+  .action(async (id: string, options: { reason: string; actor: string }) => {
+    const service = new ApprovalService();
+    try {
+      console.log(`🚫 Rejecting proposal "${id}"...`);
+      const receipt = await service.rejectProposal(id, options.actor, options.reason);
+      console.log(`✅ Proposal rejected without touching the repo.`);
+      console.log(`Receipt ID: ${receipt.id}`);
+      console.log(`Outcome: ${receipt.outcome}`);
+    } catch (err) {
+      console.error(`❌ Rejection failed: ${String(err)}`);
+      process.exit(1);
+    }
+  });
+
+/**
+ * hammock receipts
+ * Display immutable receipt audit log
+ */
+program
+  .command('receipts')
+  .description('View cryptographic receipt log from SQLite')
+  .action(() => {
+    const repo = new HammockRepository(config.HAMMOCK_DB_PATH);
+    try {
+      const receipts = repo.getAllReceipts();
+      if (receipts.length === 0) {
+        console.log('No receipts recorded in audit log.');
+        return;
+      }
+
+      console.log(`📜 Showing ${receipts.length} receipt(s) from immutable audit log:\n`);
+      console.table(
+        receipts.map((r) => ({
+          ID: r.id,
+          Issue: r.issue_id,
+          Action: r.action,
+          Outcome: r.outcome,
+          Created: new Date(r.created_at).toLocaleTimeString(),
+        }))
+      );
+    } finally {
+      repo.close();
+    }
   });
 
 program.parse(process.argv);

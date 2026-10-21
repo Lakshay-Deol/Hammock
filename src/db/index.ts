@@ -207,6 +207,7 @@ export class HammockRepository {
       INSERT INTO proposals (id, issue_id, action, payload_json, risk, status, created_at, decided_at, decided_by)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
+        payload_json = excluded.payload_json,
         status = excluded.status,
         decided_at = excluded.decided_at,
         decided_by = excluded.decided_by
@@ -275,6 +276,53 @@ export class HammockRepository {
       receipt.user_edit_diff ?? null,
       receipt.created_at
     );
+  }
+
+  getAllReceipts(): Receipt[] {
+    const stmt = this.db.prepare('SELECT * FROM receipts ORDER BY created_at DESC');
+    const rows = stmt.all() as Array<Record<string, unknown>>;
+    return rows.map((row) => ({
+      id: String(row['id']),
+      run_id: String(row['run_id']),
+      issue_id: String(row['issue_id']),
+      action: row['action'] as Receipt['action'],
+      payload_json: String(row['payload_json']),
+      evidence_json: String(row['evidence_json']),
+      outcome: row['outcome'] as Receipt['outcome'],
+      user_edit_diff: row['user_edit_diff'] ? String(row['user_edit_diff']) : null,
+      created_at: String(row['created_at']),
+    }));
+  }
+
+  getStats(): {
+    totalIssues: number;
+    pendingProposals: number;
+    approvedUnedited: number;
+    approvedEdited: number;
+    rejected: number;
+    autoApplied: number;
+  } {
+    const issueCount = (this.db.prepare('SELECT COUNT(*) as count FROM issues').get() as { count: number }).count;
+    const pendingCount = (
+      this.db.prepare("SELECT COUNT(*) as count FROM proposals WHERE status = 'pending'").get() as { count: number }
+    ).count;
+    const outcomeCounts = this.db
+      .prepare('SELECT outcome, COUNT(*) as count FROM receipts GROUP BY outcome')
+      .all() as Array<{ outcome: string; count: number }>;
+
+    const counts: Record<string, number> = {};
+    for (const row of outcomeCounts) {
+      counts[row.outcome] = row.count;
+    }
+
+    return {
+      totalIssues: issueCount,
+      pendingProposals: pendingCount,
+      approvedUnedited: counts['approved_unedited'] ?? 0,
+      approvedEdited: counts['approved_edited'] ?? 0,
+      rejected: counts['rejected'] ?? 0,
+      autoApplied: counts['auto_applied'] ?? 0,
+    };
   }
 
   saveEmbedding(issueId: string, model: string, vector: number[]): void {

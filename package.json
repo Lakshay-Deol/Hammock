@@ -23,6 +23,7 @@
   "license": "Apache-2.0",
   "packageManager": "pnpm@10.15.1",
   "dependencies": {
+    "@hono/node-server": "^2.1.5",
     "@mastra/core": "^1.78.0",
     "@temporalio/activity": "^1.24.0",
     "@temporalio/client": "^1.24.0",
