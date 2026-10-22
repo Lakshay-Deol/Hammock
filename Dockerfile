@@ -24,6 +24,7 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/fixtures ./fixtures
 COPY --from=builder /app/.hammock.yml ./.hammock.yml
+COPY --from=builder /app/hammock-logo-icon.svg ./hammock-logo-icon.svg
 COPY --from=builder /app/hammock.db ./hammock.db
 
 ENV NODE_ENV=production

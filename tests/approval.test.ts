@@ -155,5 +155,16 @@ describe('Hono Approval API Server', () => {
     const html = await htmlRes.text();
     expect(html).toContain('Hammock Triage Gate');
     expect(html).toContain('Pending Maintainer Taps');
+    expect(html).toContain('/hammock-logo-icon.svg');
+
+    // 5. Check logo and favicon endpoints
+    const logoRes = await app.request('/hammock-logo-icon.svg');
+    expect(logoRes.status).toBe(200);
+    expect(logoRes.headers.get('Content-Type')).toBe('image/svg+xml');
+    expect(await logoRes.text()).toContain('<svg');
+
+    const favRes = await app.request('/favicon.ico');
+    expect(favRes.status).toBe(200);
+    expect(favRes.headers.get('Content-Type')).toBe('image/svg+xml');
   });
 });

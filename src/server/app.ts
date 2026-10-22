@@ -6,6 +6,9 @@ import { getAuthAdapter } from '../auth/index.js';
 import { config } from '../config.js';
 import { seedDemoDataIfEmpty } from './seed.js';
 
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
 export function createHammockServer(): Hono {
   const app = new Hono();
   const repo = new HammockRepository(config.HAMMOCK_DB_PATH);
@@ -14,6 +17,29 @@ export function createHammockServer(): Hono {
   const authAdapter = getAuthAdapter();
 
   app.use('*', cors());
+
+  // Logo asset endpoint
+  const logoPath = path.resolve(process.cwd(), 'hammock-logo-icon.svg');
+  let logoSvg = '';
+  try {
+    if (fs.existsSync(logoPath)) {
+      logoSvg = fs.readFileSync(logoPath, 'utf8');
+    }
+  } catch {
+    logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><rect width="256" height="256" rx="56" fill="#f26a10"/><path d="M64 60V196M192 60V196" stroke="#0b0f17" stroke-width="14" stroke-linecap="round"/><path d="M64 96Q128 200 192 96" fill="none" stroke="#0b0f17" stroke-width="16" stroke-linecap="round"/><circle cx="128" cy="126" r="14" fill="#ffffff"/></svg>`;
+  }
+
+  app.get('/hammock-logo-icon.svg', (c) => {
+    c.header('Content-Type', 'image/svg+xml');
+    c.header('Cache-Control', 'public, max-age=86400');
+    return c.body(logoSvg);
+  });
+
+  app.get('/favicon.ico', (c) => {
+    c.header('Content-Type', 'image/svg+xml');
+    c.header('Cache-Control', 'public, max-age=86400');
+    return c.body(logoSvg);
+  });
 
   // API 1: List pending proposals
   app.get('/api/proposals', (c) => {
@@ -88,6 +114,9 @@ export function createHammockServer(): Hono {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hammock Triage Gate — Local Approval-Gated Issue Triage</title>
+  <link rel="icon" type="image/svg+xml" href="/hammock-logo-icon.svg">
+  <link rel="alternate icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/hammock-logo-icon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -941,7 +970,7 @@ export function createHammockServer(): Hono {
   <!-- Navigation Bar -->
   <nav>
     <a href="#" class="nav-brand">
-      <div class="logo-glyph">H</div>
+      <img src="/hammock-logo-icon.svg" alt="Hammock Logo" width="28" height="28" style="border-radius: 7px; display: block; box-shadow: 0 0 10px rgba(242, 106, 16, 0.45);">
       <div class="nav-logo">HAMMOCK</div>
       <span class="nav-tag">Gated Triage</span>
     </a>
@@ -956,7 +985,10 @@ export function createHammockServer(): Hono {
   <div class="hero-container">
     <div class="hero-content">
       <div class="hero-header-row">
-        <div class="hero-brand-rig">HAMMOCK</div>
+        <div style="display: flex; align-items: center; gap: 0.85rem;">
+          <img src="/hammock-logo-icon.svg" alt="Hammock Logo" width="46" height="46" style="border-radius: 11px; box-shadow: 0 0 20px rgba(242, 106, 16, 0.45); display: block;">
+          <div class="hero-brand-rig">HAMMOCK</div>
+        </div>
         <a href="#workbench-section" class="btn-chamfer hero-btn-demo">Get a Demo</a>
       </div>
 
