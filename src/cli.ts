@@ -564,7 +564,7 @@ program
 program
   .command('dashboard')
   .description('Launch the Hammock maintainer approval dashboard')
-  .option('-p, --port <number>', 'Port to listen on', '3000')
+  .option('-p, --port <number>', 'Port to listen on', process.env.PORT || '3000')
   .action((options: { port: string }) => {
     const port = parseInt(options.port, 10);
     startServer(port);

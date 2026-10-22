@@ -4,10 +4,12 @@ import { ApprovalService } from '../approval/service.js';
 import { HammockRepository } from '../db/index.js';
 import { getAuthAdapter } from '../auth/index.js';
 import { config } from '../config.js';
+import { seedDemoDataIfEmpty } from './seed.js';
 
 export function createHammockServer(): Hono {
   const app = new Hono();
   const repo = new HammockRepository(config.HAMMOCK_DB_PATH);
+  seedDemoDataIfEmpty(repo);
   const approvalService = new ApprovalService(repo);
   const authAdapter = getAuthAdapter();
 

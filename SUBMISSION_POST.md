@@ -3,6 +3,7 @@ title: "Hammock: a sloth that triages my issues overnight, and never speaks with
 published: true
 tags: devchallenge, hf26challenge, hacktoberfest, opensource
 cover_image: https://raw.githubusercontent.com/Lakshay-Deol/Hammock/main/assets/cover.png
+
 canonical_url: https://github.com/Lakshay-Deol/Hammock
 description: "Local, approval-gated GitHub issue triage with Gemma 4, Mastra, Temporal, and Auth0. Reversible alone. Visible never."
 ---
@@ -117,6 +118,54 @@ We evaluated Hammock against ground-truth harvested duplicate issues and real-wo
 | **Inference Throughput (`gemma4:e4b`)** | Real hardware | **42.5 tok/s** |
 | **Prompt Injection Protection** | 100% | **3/3 Attacks Neutralized** |
 | **Test Suite Pass Rate** | 100% | **26 / 26 Vitest Tests Passing** |
+
+---
+
+## Try It in 60 Seconds & Deployment Options
+
+Hammock is designed as a **local-first, offline-first triage agent** so that private issue text and repository code never leave your machine. You can run or deploy Hammock in three ways:
+
+### 1. ⚡ 60-Second Reviewer Quickstart (Zero Configuration)
+Reviewers don't need Ollama, Temporal, or API keys installed to test Hammock. It includes a built-in deterministic Replay transport adapter:
+
+```bash
+git clone https://github.com/Lakshay-Deol/Hammock.git
+cd Hammock
+pnpm install && pnpm build
+
+# 1. Run all 26 verification tests
+pnpm test
+
+# 2. Benchmark deduplication engine (100% precision / recall)
+pnpm hammock eval-dedupe
+
+# 3. Test prompt injection immunity across 8 fixtures
+pnpm hammock test-fixtures
+
+# 4. Launch the maintainer approval dashboard
+pnpm hammock dashboard
+# -> Open http://localhost:3000 to review pending proposals and audit receipts
+```
+
+### 2. ☁️ Scheduled Cloud / CI Deployment (GitHub Actions)
+For maintainers who want automated nightly triage in their repository without running local daemons, Hammock includes a ready-to-run GitHub Actions workflow (`.github/workflows/hammock-triage.yml`):
+- Runs automatically on a nightly cron (`0 2 * * *`).
+- Can be manually triggered on any repo branch with `workflow_dispatch`.
+- Strictly respects allowlisted labels and approval gates.
+
+### 3. 🌐 Live Maintainer Cockpit Deployment on Render
+To deploy the glassmorphic maintainer approval dashboard online (so judges and visitors can test approving, editing diffs, and viewing audit receipts live):
+
+**Option A: 1-Click Render Blueprint (`render.yaml`)**
+1. Fork or push this repository to GitHub.
+2. In Render, select **"New +" → "Blueprint"** and connect your repository.
+3. Render automatically picks up `render.yaml`, builds the Node 22 service, auto-seeds interactive proposals, and gives you a public URL (e.g. `https://hammock-dashboard.onrender.com`).
+
+**Option B: Docker Deployment**
+```bash
+docker build -t hammock-dashboard .
+docker run -p 3000:3000 -e PORT=3000 hammock-dashboard
+```
 
 ---
 

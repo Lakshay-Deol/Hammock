@@ -1,0 +1,58 @@
+name: Hammock Scheduled Triage
+
+on:
+  schedule:
+    # Runs nightly at 02:00 UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      target_repo:
+        description: 'Target repository (defaults to HAMMOCK_SANDBOX_REPO)'
+        required: false
+        type: string
+
+jobs:
+  triage:
+    name: Nightly Issue Triage & Diagnostics
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build TypeScript
+        run: pnpm build
+
+      - name: Run verification test suite
+        run: pnpm test
+
+      - name: Run Hammock Doctor diagnostics
+        run: pnpm hammock doctor
+
+      - name: Run Nightly Triage Pipeline
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HAMMOCK_DRY_RUN: '0'
+          HAMMOCK_SANDBOX_REPO: ${{ github.repository }}
+          HAMMOCK_REPLAY: '1' # Replay transport adapter for deterministic cloud runner execution
+        run: |
+          TARGET="${{ inputs.target_repo || github.repository }}"
+          echo "Starting triage pass for ${TARGET}..."
+          pnpm hammock triage-run "${TARGET}"

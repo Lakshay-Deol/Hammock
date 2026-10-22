@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: hammock-maintainer-dashboard
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: pnpm install && pnpm build
+    startCommand: node dist/cli.js dashboard
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HAMMOCK_REPLAY
+        value: "1"
+      - key: HAMMOCK_DRY_RUN
+        value: "1"
+      - key: HAMMOCK_SANDBOX_REPO
+        value: "Lakshay-Deol/hammock-sandbox"
