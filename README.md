@@ -186,6 +186,17 @@ Hammock innovates on top of these by introducing:
 
 ---
 
+## 📚 Reference Documents
+
+All technical plans, demo scripts, and challenge submission materials are organized in [`references/`](references/):
+- **[`references/PLAN.md`](references/PLAN.md)**: Milestone specifications, acceptance criteria, and system prompt definitions.
+- **[`references/DEMO_PLAN.md`](references/DEMO_PLAN.md)**: Demo architecture, slide deck structure, and proof verification guide.
+- **[`references/DEMO_SCRIPT.md`](references/DEMO_SCRIPT.md)**: Timed script for the video recording.
+- **[`references/LOCAL_DEMO_GUIDE.md`](references/LOCAL_DEMO_GUIDE.md)**: Complete guide to running the local CLI, Temporal worker, and Hono UI.
+- **[`references/SUBMISSION_POST.md`](references/SUBMISSION_POST.md)**: Hackathon submission post with category breakdowns and metrics.
+
+---
+
 ## 📄 License
 
 Apache-2.0 © 2026 Lakshay Deol

@@ -2,7 +2,7 @@
 
 Local, approval-gated GitHub issue triage. TypeScript, Node 22, pnpm.
 
-**Read `PLAN.md` before starting any task.** It contains the milestones, the prompts, and the acceptance check for each one. Work exactly one milestone per task and stop at its acceptance check.
+**Read `references/PLAN.md` before starting any task.** It contains the milestones, the prompts, and the acceptance check for each one. Work exactly one milestone per task and stop at its acceptance check.
 
 ## Hard invariants — violating any of these is a failed task
 
