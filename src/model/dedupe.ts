@@ -55,29 +55,38 @@ export async function adjudicateDuplicate(
 
   // Live Ollama adjudication
   const prompt = buildDedupePrompt(target, candidate);
-  const res = await fetch(`${config.OLLAMA_BASE_URL}/api/generate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: config.OLLAMA_MODEL,
-      prompt,
-      stream: false,
-      format: 'json',
-      options: {
-        temperature: 0.1, // Low temperature for factual precision
-        top_p: 0.9,
-      },
-    }),
-  });
+const res = await fetch(`${config.OLLAMA_BASE_URL}/api/generate`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  signal: AbortSignal.timeout(300000),
+  body: JSON.stringify({
+    model: config.OLLAMA_MODEL,
+    prompt,
+    stream: true,
+    format: 'json',
+    options: {
+      temperature: 0.1,
+      top_p: 0.9,
+    },
+  }),
+});
 
   if (!res.ok) {
     throw new Error(`Dedupe adjudication failed: HTTP ${res.status}`);
   }
 
-  const data = (await res.json()) as { response?: string };
-  const cleaned = cleanModelOutput(data.response ?? '{}');
-  const parsed = JSON.parse(cleaned);
-  return DedupeAdjudicationSchema.parse(parsed);
+  const raw = await res.text();
+
+const response = raw
+  .split('\n')
+  .filter((line) => line.trim().length > 0)
+  .map((line) => JSON.parse(line) as { response?: string })
+  .map((chunk) => chunk.response ?? '')
+  .join('');
+
+const cleaned = cleanModelOutput(response);
+const parsed = JSON.parse(cleaned);
+return DedupeAdjudicationSchema.parse(parsed);
 }
 
 export function adjudicateDuplicateReplay(target: Issue, candidate: Issue): DedupeAdjudication {

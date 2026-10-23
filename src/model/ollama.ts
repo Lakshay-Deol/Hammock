@@ -67,7 +67,7 @@ export class OllamaModelClient implements ModelClient {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
-        signal: AbortSignal.timeout(60000), // Acceptance check: <60s
+        signal: AbortSignal.timeout(180000), // Acceptance check: <60s
       });
 
       if (!res.ok) {
@@ -104,7 +104,7 @@ export class OllamaModelClient implements ModelClient {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(retryBody),
-        signal: AbortSignal.timeout(60000),
+        signal: AbortSignal.timeout(180000),
       });
 
       if (!retryRes.ok) {

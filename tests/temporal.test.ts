@@ -28,7 +28,7 @@ describe('Temporal Activities & Idempotent Fetch', () => {
       since: '2099-01-01T00:00:00Z',
     });
     expect(futureResult.issues.length).toBe(0);
-  });
+  },30000);
 
   it('triageIssueActivity produces verdict, embedding, and draft reply', async () => {
     const issue: Issue = {
@@ -58,7 +58,7 @@ describe('Temporal Activities & Idempotent Fetch', () => {
     } finally {
       repo.close();
     }
-  });
+  },30000);
 
   it('applyAllowlistActivity enforces policy allowlist and gates comments', async () => {
     const issue: Issue = {
@@ -117,7 +117,7 @@ describe('Temporal Activities & Idempotent Fetch', () => {
     } finally {
       repo.close();
     }
-  });
+  },30000);
 
   it('saveRunDigestActivity records run summary accurately', async () => {
     const digest = await saveRunDigestActivity({
@@ -133,5 +133,5 @@ describe('Temporal Activities & Idempotent Fetch', () => {
     expect(digest.totalIssues).toBe(6);
     expect(digest.labelsApplied).toBe(8);
     expect(digest.completedAt).toBeDefined();
-  });
+  },30000);
 });

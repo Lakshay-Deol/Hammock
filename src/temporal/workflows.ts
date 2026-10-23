@@ -8,7 +8,7 @@ const {
   applyAllowlistActivity,
   saveRunDigestActivity,
 } = proxyActivities<typeof activities>({
-  startToCloseTimeout: '2 minutes',
+  startToCloseTimeout: '5 minutes',
   retry: {
     initialInterval: '1s',
     backoffCoefficient: 2,

@@ -66,15 +66,18 @@ export async function executeProposal(options: ExecuteProposalOptions): Promise<
     return receipt;
   }
 
-  if (!octokit) {
+  // Build the client from the environment when a caller does not supply one.
+  // Every write still routes through this function (Invariant 1) and past assertWritable (Invariant 2).
+  if (!octokit && !config.GITHUB_TOKEN) {
     throw new Error('Octokit instance required for real writes when HAMMOCK_DRY_RUN=0.');
   }
+  const client = octokit ?? new Octokit({ auth: config.GITHUB_TOKEN });
 
   switch (proposal.action) {
     case 'label': {
       const labels = Array.isArray(payload['labels']) ? (payload['labels'] as string[]) : [];
       if (labels.length > 0) {
-        await octokit.rest.issues.addLabels({
+        await client.rest.issues.addLabels({
           owner,
           repo: repoName,
           issue_number: issueNumber,
@@ -86,7 +89,7 @@ export async function executeProposal(options: ExecuteProposalOptions): Promise<
     case 'comment': {
       const body = typeof payload['body'] === 'string' ? payload['body'] : '';
       if (!body) throw new Error('Missing comment body in payload.');
-      await octokit.rest.issues.createComment({
+      await client.rest.issues.createComment({
         owner,
         repo: repoName,
         issue_number: issueNumber,
@@ -95,7 +98,7 @@ export async function executeProposal(options: ExecuteProposalOptions): Promise<
       break;
     }
     case 'close': {
-      await octokit.rest.issues.update({
+      await client.rest.issues.update({
         owner,
         repo: repoName,
         issue_number: issueNumber,
@@ -104,7 +107,7 @@ export async function executeProposal(options: ExecuteProposalOptions): Promise<
       break;
     }
     case 'lock': {
-      await octokit.rest.issues.lock({
+      await client.rest.issues.lock({
         owner,
         repo: repoName,
         issue_number: issueNumber,
@@ -114,7 +117,7 @@ export async function executeProposal(options: ExecuteProposalOptions): Promise<
     case 'assign': {
       const assignees = Array.isArray(payload['assignees']) ? (payload['assignees'] as string[]) : [];
       if (assignees.length > 0) {
-        await octokit.rest.issues.addAssignees({
+        await client.rest.issues.addAssignees({
           owner,
           repo: repoName,
           issue_number: issueNumber,

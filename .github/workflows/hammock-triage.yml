@@ -51,7 +51,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HAMMOCK_DRY_RUN: '0'
           HAMMOCK_SANDBOX_REPO: ${{ github.repository }}
-          HAMMOCK_REPLAY: '1' # Replay transport adapter for deterministic cloud runner execution
+          HAMMOCK_REPLAY: '0' # Live fetch; replay would fabricate fixtures and 404 on real issue numbers
         run: |
           TARGET="${{ inputs.target_repo || github.repository }}"
           echo "Starting triage pass for ${TARGET}..."

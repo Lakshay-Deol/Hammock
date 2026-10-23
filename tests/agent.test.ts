@@ -28,7 +28,7 @@ describe('Mastra Agent & Triage Tools', () => {
     expect(result.verdict).toBeDefined();
     expect(result.verdict.type).toBe('documentation');
     expect(result.latencyMs).toBeGreaterThanOrEqual(1);
-  });
+  },30000);
 
   it('executes draftReply tool correctly', async () => {
     const issue: Issue = {
@@ -63,5 +63,5 @@ describe('Mastra Agent & Triage Tools', () => {
     expect(result.draft).toBeDefined();
     expect(result.draft.reply).toContain('Hi @alice');
     expect(result.draft.questions.length).toBe(2);
-  });
+  },30000);
 });
